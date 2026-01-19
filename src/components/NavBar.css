@@ -1,0 +1,33 @@
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  font-family: 'Fira Code', monospace;
+  color: var(--text);
+  background: transparent;
+}
+
+.nav-bar .logo {
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: var(--highlight);
+}
+
+.nav-links a {
+  color: var(--accent);
+  text-decoration: none;
+  margin-left: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+  .nav-links a {
+    margin-left: 12px;
+  }
+}

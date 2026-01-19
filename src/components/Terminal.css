@@ -1,0 +1,118 @@
+.terminal-container {
+    width: 100%;
+    height: 600px;
+    background: var(--base);
+    border-radius: 8px;
+    border: 1px solid var(--surface1);
+    box-sizing: border-box;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Fira Code', monospace;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-header {
+  background: var(--mantle);
+  border-bottom: 1px solid var(--surface2);
+  color: var(--dimmed-text);
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: 'Fira Code', monospace;
+}
+
+.terminal-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-buttons span.close {
+  background: var(--red);
+}
+
+.terminal-buttons span.minimize {
+  background: var(--yellow);
+}
+
+.terminal-buttons span.maximize {
+  background: var(--green);
+}
+
+.btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.terminal-title {
+    color: var(--dimmed-text);
+    font-size: 14px;
+    flex: 1;
+    text-align: center;
+}
+
+.terminal-body {
+    padding: 20px;
+    height: calc(100% - 42px);
+    overflow-y: auto;
+    background: var(--base);
+    color: var(--green);
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: 'Fira Code', monospace;
+}
+
+.terminal-line {
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.terminal-line.output {
+    color: var(--green);
+}
+
+.terminal-line.input {
+  color: var(--text);
+}
+
+.prompt {
+  color: var(--highlight);
+  margin-right: 8px;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  caret-color: var(--highlight);
+}
+
+.terminal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+  background: var(--overlay0);
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+  background: var(--surface1);
+  border-radius: 4px;
+}
+
+.terminal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--surface2);
+}

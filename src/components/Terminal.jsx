@@ -1,5 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { executeCommand, getCwdPath } from '../vfs';
+
 import './Terminal.css';
+
 
 function Terminal() {
     const [input, setInput] = useState('');
@@ -8,12 +11,33 @@ function Terminal() {
         { type: 'output', content: 'Type "help" to see available commands.'},
         { type: 'output', content: ''}
     ]);
+    const [commandHistory, setCommandHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(null);
+
     const inputRef = useRef(null);
+
     const terminalRef = useRef(null);
 
     useEffect(() => {
         inputRef.current?.focus();
     }, []);
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        if (input.trim() === '') return;
+        const cmd = input.trim();
+        const result = executeCommand(cmd);
+
+        setCommandHistory(prev => [...prev, cmd]);
+        setHistoryIndex(null);
+
+        if (result === '__clear__') {
+            setOutput([]);
+        } else {
+            setOutput(h => [...h, { type: 'input', content: getCwdPath() + '$ ' + cmd }, { type: 'output', content: result }])
+        }
+        setInput('');
+    }
 
     useEffect(() => {
         if (terminalRef.current) {
@@ -21,75 +45,34 @@ function Terminal() {
         }
     }, [output]);
 
-    function handleCommand(cmd) {
-        const trimmedCmd = cmd.trim().toLowerCase();
-
-        setOutput(prev => [...prev, { type: 'input', content: cmd }]);
-
-        let output = '';
-
-        switch(trimmedCmd) {
-            case 'help':
-                output = `Available commands:
-        help      - Show this help message
-        about     - About me
-        projects  - View my projects
-        blog      - Read my blog posts
-        contact   - Get in touch
-        clear     - Clear terminal`;
-                break;
-            
-            case 'about':
-                output = `Hi! I'm Elliot Anderson -- 
-        a developer passionate about building cool stuff.
-        Skills: React, JavaScript, Node.js, etc.`;
-                break;
-            
-            case 'projects':
-                output = `My Projects:
-        1. Terminal Portfolio - This website!
-        2. Project Two - Description
-        3. Project Three - Description
-        
-        Type 'project <number>' for more details.`;
-                break;
-            
-            case 'blog':
-                output = `Recent Blog Posts:
-        1. Building a Terminal Portfolio
-        2. My Journey into Web Development
-        
-        Type 'blog <number>' to read.`;
-                break;
-            
-            case 'contact':
-                output = `Get in touch:
-        Email: elliot.anderson43@gmail.com
-        GitHub: github.com/elliota43
-        Twitter: @elliotlanderson`;
-                break;
-            
-            case 'clear':
-                setOutput([]);
-                return;
-            
-            default:
-                output = `Command not found: ${cmd}. Type 'help' for available commands.`;
-            }
-
-        setOutput(prev => [...prev, { type: 'output', content: output }]);
-    }
-
-    function handleSubmit(e) {
-        e.preventDefault();
-        if (input.trim()) {
-            handleCommand(input);
-            setInput('');
-        }
-    }
-
     function handleTerminalClick() {
         inputRef.current?.focus();
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length === 0) return;
+
+            let newIndex = historyIndex === null ? commandHistory.length - 1 : historyIndex - 1;
+            if (newIndex < 0) newIndex = 0;
+
+            setHistoryIndex(newIndex);
+            setInput(commandHistory[newIndex]);
+        }
+        else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (commandHistory.length === 0) return;
+
+            let newIndex = historyIndex === null ? -1 : historyIndex + 1;
+            if (newIndex >= commandHistory.length) {
+                setHistoryIndex(null);
+                setInput('');
+            } else {
+                setHistoryIndex(newIndex);
+                setInput(commandHistory[newIndex]);
+            }
+        }
     }
 
     return (
@@ -118,9 +101,11 @@ function Terminal() {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="terminal-input"
                         autoFocus
                         spellCheck="false"
+                        autoComplete="off"
                         />
                 </form>
             </div>

@@ -13,7 +13,10 @@ const initialState = {
   historyIndex: null,
   tabCompletions: [],
   tabIndex: 0,
+  clock: "",
 };
+
+const HISTORY_STORAGE_KEY = "terminal-history";
 
 function applyCompletionToInput(input, completion) {
   const parts = input.split(" ");
@@ -21,10 +24,38 @@ function applyCompletionToInput(input, completion) {
   return parts.join(" ");
 }
 
+function formatClockTime(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function initTerminalState(baseState) {
+  let history = [];
+  if (typeof window !== "undefined") {
+    try {
+      const stored = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : [];
+      if (Array.isArray(parsed)) {
+        history = parsed;
+      }
+    } catch {
+      history = [];
+    }
+  }
+
+  return {
+    ...baseState,
+    commandHistory: history,
+    clock: formatClockTime(new Date()),
+  };
+}
+
 function terminalReducer(state, action) {
   switch (action.type) {
     case "SET_INPUT":
       return { ...state, input: action.value };
+
+    case "SET_CLOCK":
+      return { ...state, clock: action.value };
 
     case "RESET_COMPLETIONS":
       return { ...state, tabCompletions: [], tabIndex: 0 };
@@ -163,7 +194,7 @@ function terminalReducer(state, action) {
 }
 
 function Terminal() {
-  const [state, dispatch] = useReducer(terminalReducer, initialState);
+  const [state, dispatch] = useReducer(terminalReducer, initialState, initTerminalState);
 
   const inputRef = useRef(null);
   const terminalRef = useRef(null);
@@ -177,6 +208,22 @@ function Terminal() {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [state.output]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        HISTORY_STORAGE_KEY,
+        JSON.stringify(state.commandHistory)
+      );
+    }
+  }, [state.commandHistory]);
+
+  useEffect(() => {
+    const tick = () => dispatch({ type: "SET_CLOCK", value: formatClockTime(new Date()) });
+    const interval = window.setInterval(tick, 1000);
+    tick();
+    return () => window.clearInterval(interval);
+  }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -248,6 +295,9 @@ function Terminal() {
         <div className="flex-1 text-center font-mono text-xs uppercase tracking-[0.2em] text-slate-400">
           terminal@portfolio
         </div>
+        <div className="min-w-[72px] text-right font-mono text-xs text-slate-400">
+          {state.clock}
+        </div>
       </CardHeader>
 
       <CardContent
@@ -279,17 +329,23 @@ function Terminal() {
             <span className="select-none text-terminal-highlight">
               {getCwdPath()}$&nbsp;
             </span>
-            <input
-              ref={inputRef}
-              type="text"
-              value={state.input}
-              onChange={(e) => dispatch({ type: "SET_INPUT", value: e.target.value })}
-              onKeyDown={handleKeyDown}
-              className="w-full flex-1 bg-transparent text-slate-100 outline-none caret-terminal-highlight"
-              autoFocus
-              spellCheck="false"
-              autoComplete="off"
-            />
+            <div
+              className="terminal-input-wrapper"
+              style={{ "--cursor-pos": state.input.length }}
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={state.input}
+                onChange={(e) => dispatch({ type: "SET_INPUT", value: e.target.value })}
+                onKeyDown={handleKeyDown}
+                className="terminal-input w-full bg-transparent text-slate-100 outline-none"
+                autoFocus
+                spellCheck="false"
+                autoComplete="off"
+              />
+              <span className="terminal-block-cursor" aria-hidden="true" />
+            </div>
           </form>
 
           {state.tabCompletions.length > 1 && (

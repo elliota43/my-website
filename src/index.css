@@ -40,3 +40,35 @@
     @apply underline;
   }
 }
+
+@keyframes terminal-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.terminal-input-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.terminal-input {
+  caret-color: transparent;
+}
+
+.terminal-block-cursor {
+  position: absolute;
+  top: 0.1em;
+  left: 0;
+  width: 0.7ch;
+  height: 1.2em;
+  background: var(--color-terminal-highlight);
+  animation: terminal-cursor-blink 1s steps(1) infinite;
+  transform: translateX(calc(var(--cursor-pos) * 1ch));
+  pointer-events: none;
+}
+
+.terminal-input-wrapper:not(:focus-within) .terminal-block-cursor {
+  opacity: 0;
+}
